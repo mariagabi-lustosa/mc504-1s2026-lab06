@@ -1,0 +1,28 @@
+config HELLO
+    default m
+    tristate "Hello module"
+    help
+        This module prints the following message when loaded: 'hello',
+        as well as the following when removed: 'goodbye'.
+        This module was created for educational purposes, as part
+        of the Linux Kernel Development Workshop organized by LKCAMP.
+        The default configuration is 'm': the module will be compiled
+        and it will be available to be loaded in execution time.
+
+
+config LKCAMP_CHAR
+    default m
+    tristate "LKCamp char module"
+    help
+        Provides a char module, to understand the 'read' and
+        'write' functions of modules.
+        This module was created for educational purposes, inside
+        a lkcamp activity for linux kernel development workshop.
+        The default configuration is 'm': the module will be compiled
+        and it will be available to be loaded in execution time.
+
+config CIPHER
+    default m
+    tristate "Cipher module"
+    help
+        Nothing here yet :/
