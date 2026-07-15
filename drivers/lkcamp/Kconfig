@@ -25,4 +25,15 @@ config CIPHER
     default m
     tristate "Cipher module"
     help
-        Nothing here yet :/
+        Provides a character device, /dev/cipher, that stores strings
+        encrypted with a simple Caesar-style shift cipher instead of
+        keeping them in plaintext. Writes are encrypted before being
+        stored in the driver's internal buffer, and reads are decrypted
+        on the fly before being copied back to user space.
+        The shift key can be reconfigured at runtime through the
+        LKCAMP_SET_KEY and LKCAMP_GET_KEY ioctl commands; reading data
+        back with the wrong key returns garbled output.
+        This module was created for educational purposes, as part
+        of the MC504 1s2026 course at Unicamp.
+        The default configuration is 'm': the module will be compiled
+        and it will be available to be loaded in execution time.
