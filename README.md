@@ -1,9 +1,8 @@
-# mc504-1s2026-lab06
+# Linux kernel device driver assignment (MC504 - lab06)
 
-Linux kernel device driver assignment (MC504, lab06). This repository contains
-only the files that were added or modified on top of a stock Linux kernel
-source tree (developed and tested against Linux 7.1.0) — it is not a full
-kernel tree by itself.
+This repository contains only the files that were added or modified on top of a stock Linux kernel source tree (developed and tested against Linux 7.1.0), but it is not a full kernel tree by itself.
+
+Both the module lifecycle work (build system wiring, character device registration) and the overall approach to writing a pseudo device driver in this repository are based on the LKCamp device drivers tutorial: <https://docs.lkcamp.dev/intro_tutorials/device_drivers/>. The `hello` module follows that tutorial directly; the `cipher` module extends its character device pattern with the encryption and `ioctl` configuration mechanism described below, which go beyond what the tutorial itself covers.
 
 ## What this is
 
@@ -12,7 +11,7 @@ Two loadable kernel modules live under `drivers/lkcamp/`:
 - **`hello`** (`hello.c`): a minimal module following the LKCamp device
   driver tutorial. It registers a character device (`/proc/devices` entry
   named `lkcamp`) whose `read`/`write` hold a simple ON/OFF status string.
-  Its purpose is purely educational, showing the basic module lifecycle
+  Its purpose is mainly educational, showing the basic module lifecycle
   (`module_init`/`module_exit`) and character device registration
   (`alloc_chrdev_region`, `cdev_init`, `cdev_add`).
 
@@ -29,7 +28,7 @@ Two loadable kernel modules live under `drivers/lkcamp/`:
     `LKCAMP_SET_KEY` and `LKCAMP_GET_KEY` (defined in
     `lkcamp_ioctl.h`). If a program sets the wrong key before reading data
     that was written with a different key, `read()` returns garbage instead
-    of the original string — this is the intended behavior, since it
+    of the original string. This is the intended behavior, since it
     demonstrates that the driver's output genuinely depends on its runtime
     configuration, not just on what was written.
 
@@ -75,6 +74,30 @@ From the root of a Linux kernel source tree that already has a working
    make M=drivers/lkcamp
    ```
    This produces `drivers/lkcamp/hello.ko` and `drivers/lkcamp/crypto.ko`.
+
+## Running the QEMU test VM
+
+The kernel built above was tested by booting it directly under QEMU, from
+the root of the kernel source tree, with a raw disk image as the root
+filesystem and the shared folder exposed over virtio-9p:
+
+```
+qemu-system-x86_64 \
+    -drive file=../my_disk.raw,format=raw,index=0,media=disk \
+    -m 2G -nographic \
+    -kernel ./arch/x86_64/boot/bzImage \
+    -append "root=/dev/sda rw console=ttyS0 loglevel=6" \
+    -fsdev local,id=fs1,path=../shared_folder,security_model=none \
+    -device virtio-9p-pci,fsdev=fs1,mount_tag=shared_folder \
+    --enable-kvm
+```
+
+This assumes `my_disk.raw` (a disk image with a bootable root filesystem)
+and `shared_folder` (the host directory holding `crypto.ko` and
+`test_crypto.c`, mounted with tag `shared_folder`) both sit one directory
+above the kernel source tree. Inside the guest, the shared folder shows up
+as `host_folder`, which is the path used in the loading and testing steps
+below.
 
 ## Loading and testing
 
